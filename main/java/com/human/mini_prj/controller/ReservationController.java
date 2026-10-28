@@ -13,12 +13,13 @@ import org.springframework.web.bind.annotation.*;
 @CrossOrigin(origins = "http://localhost:3000")
 public class ReservationController {
     private final ReservationService reservationService;
-
-    @PostMapping        // 예매 정보 조회 주소
+//예매 생성
+    @PostMapping
     public ReservationResDto createReservation(
             @RequestBody ReservationReqDto dto) {
         return reservationService.createReservation(dto);
     }
+    //예매 호출
     @GetMapping("/{id}")        // service 호출
     public ReservationResDto getReservation(@PathVariable Long id) {
         return reservationService.getReservation(id);
