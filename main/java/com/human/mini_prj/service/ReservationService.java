@@ -38,10 +38,11 @@ public class ReservationService {
                 .toList();
 
 
-        if (seats.stream().anyMatch(seat->seat == null)) {
-            throw new RuntimeException("좌석이 없습니다.");
+        for (Seat seat : seats) {
+            if (seat == null) {
+                throw new RuntimeException("좌석이 없습니다.");
+            }
         }
-
         // 예매 객체 생성
         Reservation reservation = new Reservation(); // 새로운 예매 정보 객체생성
         reservation.setMemberId(member.getId());        // 조회한 회원 id저장
