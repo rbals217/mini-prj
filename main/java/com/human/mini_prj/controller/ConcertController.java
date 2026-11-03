@@ -1,5 +1,5 @@
 package com.human.mini_prj.controller;
-
+import com.human.mini_prj.dto.ScheduleReqDto;
 import com.human.mini_prj.dto.ScheduleResDto;
 import com.human.mini_prj.service.ConcertScheduleService;
 import lombok.RequiredArgsConstructor;
@@ -18,5 +18,12 @@ public class ConcertController {
     public List<ScheduleResDto> getSchedule(
             @PathVariable Long concertId) {
         return scheduleService.getSchedule(concertId);
+
+    }
+    @PostMapping("/{concertId}/schedules")
+    public ScheduleResDto createSchedule(
+            @PathVariable Long concertId,
+            @RequestBody ScheduleReqDto dto) {
+        return scheduleService.createSchedule(concertId, dto);
     }
 }

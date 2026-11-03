@@ -8,6 +8,8 @@ import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import java.util.Map;
+
 @Slf4j
 @RestControllerAdvice  // 모든 컨트롤러에 공통으로 적용되는 예외 처리 담당 클래스를 만드는 어노테이션
 public class GlobalExceptionHandler {
@@ -19,7 +21,8 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(DataAccessException.class)
-    public ResponseEntity<ErrorResponse> handleDBError() {
+    public ResponseEntity<ErrorResponse> handleDBError(DataAccessException e) {
+        log.error("데이터베이스 오류 발생:",e);
         return ResponseEntity
                 .status(500)
                 .body(new ErrorResponse("DB_ERROR", "데이터베이스 오류가 발생했습니다."));
@@ -33,18 +36,22 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorResponse> handleDefault(Exception ex) {
+    public ResponseEntity<?> handleException(Exception e) {
+        log.error("서버 내부 오류 발생:",e);
         return ResponseEntity
-                .status(500)
-                .body(new ErrorResponse("UNKNOWN", "알 수 없는 서버 오류"));
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of(
+                        "message", "UNKNOWN",
+                        "code", "알 수 없는 서버 오류"
+                ));
     }
 
-    @ExceptionHandler(IllegalAccessException.class)
+    @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ErrorResponse> handleIllegalArgument(IllegalArgumentException ex) {
-        log.warn("잘못된 요청: {}", ex.getMessage());
+        log.warn("결제 검증 실패 {}", ex.getMessage());
         return ResponseEntity
-                .status(HttpStatus.NOT_FOUND)   // 404
-                .body(new ErrorResponse("NOT_FOUND", ex.getMessage()));
+                .badRequest()
+            .body(new ErrorResponse("PAYMENT_FAILED",ex.getMessage()));
     }
 
 }

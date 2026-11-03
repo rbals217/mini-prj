@@ -25,8 +25,6 @@ public class Reservation {
     @JoinColumn(name = "schedule_id")
     private ConcertSchedule concertSchedule;
 
-    @ManyToOne
-    @JoinColumn(name="member_id")
-    private Member member;
+
 
 }
