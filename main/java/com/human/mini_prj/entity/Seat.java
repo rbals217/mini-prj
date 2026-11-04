@@ -12,7 +12,7 @@ public class Seat {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long Id;
     private String seatNumber;
-    private String status;
+    private String status = "AVAILABLE";
     private int price;
     @ManyToOne
     @JoinColumn(name="schedule_id")

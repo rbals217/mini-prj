@@ -44,7 +44,7 @@ public class SeatService {
         return "좌석 등록 완료";
     }
 
-    // 좌석 조회
+    // 좌석 전체 조회
     @Transactional(readOnly = true)
     public List<SeatResDto> getSeats(Long scheduleId) {
 
@@ -58,5 +58,13 @@ public class SeatService {
         }
 
         return result;
+    }
+    // 회차별 잔여 좌석 개수 조회
+    @Transactional(readOnly = true)
+    public long getRemainingSeats(Long scheduleId) {
+
+        return seatRepository.countBySchedule_IdANdStatus(
+                scheduleId,"AVAILABLE"
+        );
     }
 }
