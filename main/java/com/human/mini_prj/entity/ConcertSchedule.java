@@ -13,7 +13,7 @@ import java.time.LocalTime;
         name ="concert_schedule",
         uniqueConstraints = @UniqueConstraint(
                 name = "uk_concert_schedule",
-                columnNames = {"concert_id","concert_data","concert_time"}
+                columnNames = {"concert_id","concert_date","concert_time"}
         )
 )
 @Getter @Setter
@@ -24,10 +24,10 @@ public class ConcertSchedule {
 
 
     private Long id;   // 콘서트 id (1,2 )
-
+    @Column(name = "concert_id")
     private Long concertId;
-
+    @Column(name = "concert_date")
     private LocalDate concertDate;
-
+    @Column(name = "concert_time")
     private LocalTime concertTime;
 }
