@@ -33,8 +33,7 @@ public class SeatController {
     }
     // 회차별 잔여 좌석 조회
     @GetMapping("/{scheduleId}/remaining")
-    public long getRemainingSeats(
-            @PathVariable long scheduleId) {
+    public long getRemainingSeats(@PathVariable Long scheduleId) {
         return seatService.getRemainingSeats(scheduleId);
     }
 }

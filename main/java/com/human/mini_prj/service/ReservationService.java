@@ -88,14 +88,14 @@ public class ReservationService {
     @Transactional
     public ReservationResDto confirmPayment(Long reservationId) {
 
-        // 1. 예매 정보 조회
+        //1. 예매 정보 조회
         Reservation reservation = reservationRepository.findById(reservationId)
-                .orElseThrow(() ->
+                .orElseThrow(()->
                         new IllegalArgumentException("예매 정보가 없습니다.")
                 );
 
         // 2. 결제 대기 상태인지 확인
-        if (!"PENDING".equals(reservation.getStatus())) {
+        if(!"PENDING".equals(reservation.getStatus())) {
             throw new IllegalArgumentException(
                     "결제 대기 상태의 예매만 결제할 수 있습니다."
             );
@@ -104,8 +104,18 @@ public class ReservationService {
         // 3. 결제 완료 처리
         reservation.setStatus("PAID");
 
-        Reservation saved = reservationRepository.save(reservation);
+        //4. 해당 예매의 연결된 좌석 조회
+        List<ReservationSeat>reservationSeats =
+                reservationSeatRepository.findByReservation_Id(reservationId);
 
-        return new ReservationResDto(saved);
+        // 5. 좌석 상태 변경
+        for(ReservationSeat reservationSeat : reservationSeats) {
+            Seat seat = reservationSeat.getSeat();
+
+            seat.setStatus("RESERVED");
+            seatRepository.save(seat);
+        }
+        Reservation saved =reservationRepository.save(reservation);
+         return  new ReservationResDto(saved);
     }
 }

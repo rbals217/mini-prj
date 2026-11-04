@@ -63,7 +63,7 @@ public class SeatService {
     @Transactional(readOnly = true)
     public long getRemainingSeats(Long scheduleId) {
 
-        return seatRepository.countBySchedule_IdANdStatus(
+        return seatRepository.countBySchedule_IdAndStatus(
                 scheduleId,"AVAILABLE"
         );
     }

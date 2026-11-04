@@ -18,7 +18,7 @@ public interface SeatRepository extends JpaRepository<Seat, Long> {
     );
 
     //공연 회차별 예매 가능한 좌석 개수 조회
-    long countBySchedule_IdANdStatus(
+    long countBySchedule_IdAndStatus(
             Long scheduleId, String status
     );
 }
