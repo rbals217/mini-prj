@@ -1,51 +1,82 @@
 package com.human.mini_prj.service;
 
+import com.human.mini_prj.dto.LoginResDto;
 import com.human.mini_prj.dto.SignUpReqDto;
 import com.human.mini_prj.entity.Member;
 import com.human.mini_prj.repository.MemberRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
-@Slf4j  // log 메시지 출력을 위해 사용
-@Service  // Spring Container에 Bean 등록
-@Transactional // 트랜잭션 처리: 여러개의 물리적인 작업 단위를 한개의 논리적인 단위로 묶음
-@RequiredArgsConstructor  // 생성자를 통한 의존성 주입을 자동으로 만들어 줌
+@Service
+@Transactional
+@RequiredArgsConstructor
+@Slf4j
 public class AuthService {
-    private final MemberRepository memberRepository;  // 생성자를 통한 의존성 주입
 
-    // 회원 가입 여부 확인
-    public boolean isDuplicatedEmail(String email) {
-        return memberRepository.existsByEmail(email);
-    }
+    private final MemberRepository memberRepository;
 
-    // 회원 가입
+    // 회원가입
     public boolean signUp(SignUpReqDto dto) {
         try {
-            Member member = toEntity(dto);
+            if (memberRepository.existsByUserId(dto.getUserId())) {
+                return false;
+            }
+
+            if (memberRepository.existsByEmail(dto.getEmail())) {
+                return false;
+            }
+
+            Member member = new Member();
+
+            member.setUserId(dto.getUserId());
+            member.setName(dto.getName());
+            member.setPhone(dto.getPhone());
+            member.setEmail(dto.getEmail());
+            member.setPwd(dto.getPwd());
+
             memberRepository.save(member);
+
             return true;
+
         } catch (Exception e) {
-            log.error("회원 가입 시 오류 발생: {}", e.getMessage());
+            log.error("회원가입 오류", e);
             return false;
         }
     }
 
-    // 로그인
-    public boolean login(String email, String pwd) {
-        Optional<Member> member = memberRepository.findByEmailAndPwd(email, pwd);
-        return member.isPresent();
+    // 아이디 로그인
+    public LoginResDto login(String userId, String pwd) {
+
+        Optional<Member> member =
+                memberRepository.findByUserIdAndPwd(userId, pwd);
+
+        if (member.isPresent()) {
+            return new LoginResDto(member.get());
+        }
+
+        return null;
     }
 
-    // DTO -> Entity
-    private Member toEntity(SignUpReqDto dto) {
-        Member member = new Member();
-        member.setName(dto.getName());
-        member.setPwd(dto.getPwd());
-        member.setEmail(dto.getEmail());
-        return member;
+    // MyPage 회원정보 조회
+    public LoginResDto getMemberInfo(Long memberId) {
+
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() ->
+                        new RuntimeException("회원이 존재하지 않습니다."));
+
+        return new LoginResDto(member);
+    }
+
+    // 아이디 중복 확인
+    public boolean existsUserId(String userId) {
+        return memberRepository.existsByUserId(userId);
+    }
+    // 이메일 중복 확인
+    public boolean isDuplicatedEmail(String email) {
+        return memberRepository.existsByEmail(email);
     }
 }

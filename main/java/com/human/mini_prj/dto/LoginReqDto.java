@@ -11,4 +11,5 @@ import lombok.Setter;
 public class LoginReqDto {
     private String email;
     private String pwd;
+    private String userId;
 }

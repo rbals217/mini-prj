@@ -9,7 +9,9 @@ import lombok.Setter;
 @Getter
 @NoArgsConstructor
 public class SignUpReqDto {
-    private String email;
-    private String pwd;
-    private String name;
+    private String userId;  // 로그인 아이디
+    private String name;    // 닉네임
+    private String phone;   // 휴대폰번호
+    private String email;   // 이메일
+    private String pwd;     // 비밀번호
 }
