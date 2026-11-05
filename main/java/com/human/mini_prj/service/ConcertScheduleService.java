@@ -34,6 +34,18 @@ public class ConcertScheduleService {
                 .map(ScheduleResDto::new)
                 .toList();
     }
+    //공연회차 일괄 등록
+    @Transactional
+    public List<ScheduleResDto> createSchedules(
+            Long concertId,
+            List<ScheduleReqDto> shceduleList) {
+        List<ScheduleResDto> result = new ArrayList<>();
+        for (ScheduleReqDto dto : shceduleList) {
+            result.add(createSchedule(concertId,dto));
+
+        }
+        return result;
+    }
 
     // 공연 회차 등록 또는 기존 회차 조회
     @Transactional
@@ -62,6 +74,7 @@ public class ConcertScheduleService {
         createSeatsIfMissing(schedule);
 
         return new ScheduleResDto(schedule);
+
     }
     @EventListener(ApplicationReadyEvent.class)
     @Transactional
@@ -74,6 +87,7 @@ public class ConcertScheduleService {
             createSeatsIfMissing(schedule);
         }
     }
+
 
     // 반드시 같은 클래스 안에 있어야 하는 메서드
     private void createSeatsIfMissing(ConcertSchedule schedule) {
@@ -112,5 +126,7 @@ public class ConcertScheduleService {
         if (!newSeats.isEmpty()) {
             seatRepository.saveAll(newSeats);
         }
+
+
     }
 }

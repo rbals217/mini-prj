@@ -1,5 +1,6 @@
 package com.human.mini_prj.controller;
 
+import com.human.mini_prj.dto.ScheduleReqDto;
 import lombok.RequiredArgsConstructor;
 
 import com.human.mini_prj.entity.Concert;
@@ -50,4 +51,16 @@ public class ConcertController {
 
         return ResponseEntity.ok(schedules);
     }
+    @PostMapping("/{concertId}/schedules/bulk")
+    public ResponseEntity<List<ScheduleResDto>> createSchedules(
+            @PathVariable Long concertId,
+            @RequestBody List<ScheduleReqDto> scheduleList) {
+
+        List<ScheduleResDto> result =
+                concertScheduleService.createSchedules(
+                        concertId, scheduleList);
+
+        return ResponseEntity.ok(result);
+    }
+
 }
