@@ -31,11 +31,11 @@ public class TokenProvider {
     }
 
     // 로그인 성공 시 토큰 발급
-    public TokenDto createToken(String email, Authority authority) {
+    public TokenDto createToken(String userId, Authority authority) {
         long now = System.currentTimeMillis();
         Date exp = new Date(now + accessExpMs);
         String token = Jwts.builder()
-                .subject(email)                     // sub: 이메일
+                .subject(userId)                     // sub: 이메일
                 .claim(AUTH_KEY, authority.name())  // auth: ROLE_USER
                 .issuedAt(new Date(now))
                 .expiration(exp)

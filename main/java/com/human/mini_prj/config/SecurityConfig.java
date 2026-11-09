@@ -32,6 +32,7 @@ public class SecurityConfig {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(Customizer.withDefaults())
+                // ⭐ 삭제: 첫 번째 authorizeHttpRequests(.anyRequest().permitAll()) 블록 전체
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .formLogin(AbstractHttpConfigurer::disable)
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -39,12 +40,14 @@ public class SecurityConfig {
                         .authenticationEntryPoint((req, res, ex) -> res.sendError(401, "인증 필요"))
                         .accessDeniedHandler((req, res, ex) -> res.sendError(403, "권한 없음")))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()   // CORS preflight
-                        .requestMatchers("/error").permitAll()                   // sendError 포워드
-                        .requestMatchers("/auth/**").permitAll()                 // 가입·로그인·중복확인
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                        .requestMatchers("/error").permitAll()
+                        .requestMatchers("/auth/**").permitAll()
                         .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/board/**", "/comment/**").permitAll() // 목록·상세 조회
-                        .anyRequest().authenticated())                           // 글쓰기·수정·삭제·회원 API
+                        .requestMatchers(HttpMethod.GET, "/board/**", "/comment/**").permitAll()
+                        // ⭐ 추가: 콘서트 조회 허용 (홈 화면, 목록, 상세)
+                        .requestMatchers(HttpMethod.GET, "/concerts/**").permitAll()
+                        .anyRequest().authenticated())
                 .addFilterBefore(new JwtFilter(tokenProvider), UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
