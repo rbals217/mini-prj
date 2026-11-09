@@ -11,7 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-
+@CrossOrigin(origins ="http://localhost:3000")
 @Slf4j  // log 메시지 작성 하는 용도
 @RestController // Restfull API를 지원하는 컨크롤러(직렬화/역직렬화) 기능을 가지고 있음
 @RequestMapping("/board")   // http://localhost:8111/board/
@@ -56,7 +56,7 @@ public class BoardController {
     }
 
     // 게시글 목록 페이지네이션 조회
-    // GET http://localhost:8111/board/list/page?page=0&size=10
+    // GET http://localhost:8111/board/List/page?page=0&size=10
     @GetMapping("/list/page")
     public ResponseEntity<PageResDto<BoardResDto>> boardListPage(
             @RequestParam(defaultValue = "1") int page,

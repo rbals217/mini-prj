@@ -4,7 +4,6 @@ package com.human.mini_prj.entity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-import lombok.ToString;
 
 import java.time.LocalDateTime;
 
@@ -23,6 +22,13 @@ public class Board {
 
     @Column(length = 100, nullable = false)
     private String title;   // 게시글 제목
+
+    @Column(nullable = false)
+    private int viewCount = 0;
+
+    public void increaseViewCount() {
+        this.viewCount++;
+    }
 
     private LocalDateTime regTime;  // 작성일
     @PrePersist

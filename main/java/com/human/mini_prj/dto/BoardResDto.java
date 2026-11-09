@@ -10,10 +10,11 @@ import java.time.LocalDateTime;
 @Setter
 @NoArgsConstructor
 public class BoardResDto {
-    private Long id;
+    private Long boardId;
     private String title;
     private String content;
     private String email;
     private String name;
+    private int viewCount;
     private LocalDateTime regDate;
 }
