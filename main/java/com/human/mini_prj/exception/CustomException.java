@@ -6,11 +6,10 @@ import org.springframework.http.HttpStatus;
 @Getter
 public class CustomException extends RuntimeException{
     private final String code;
-    private HttpStatus status;
+    private final HttpStatus status;
 
     public CustomException(String code, String message) {
-        super(message);
-        this.code = code;
+        this(HttpStatus.BAD_REQUEST, code, message);   // null 대신 기본값 400
     }
     // 새 생성자: 401, 403 등 상태 코드를 직접 지정
     public CustomException(HttpStatus status, String code, String message) {
@@ -18,5 +17,4 @@ public class CustomException extends RuntimeException{
         this.status = status;
         this.code = code;
     }
-
 }
