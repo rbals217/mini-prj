@@ -1,6 +1,5 @@
 package com.human.mini_prj.repository;
 
-
 import com.human.mini_prj.constant.ItemSellStatus;
 import com.human.mini_prj.entity.Item;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -10,10 +9,8 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public interface ItemRepository extends JpaRepository<Item, Long> { //JPA 설계명서
-    // 기본적으로 CRUD를 모두 포함
-
-
+public interface ItemRepository extends JpaRepository<Item, Long> {  // JPA 설계명세
+    // 기본적인 CRUD를 모두 포함하고 있음
 
     // 상품명으로 상품 검색
     List<Item> findByItemNm(String itemNm);  // findBy + 변수 이름, sql : select * from item where item_nm = ?
@@ -58,15 +55,13 @@ public interface ItemRepository extends JpaRepository<Item, Long> { //JPA 설계
     // SQL : select count(*) from item where item_sell_status = ?
     long countByItemSellStatus(ItemSellStatus itemSellStatus);
 
+    // JPQL(JPA Query Language): 객체지향 쿼리
+    @Query("SELECT i FROM Item i WHERE i.itemDetail LIKE %:itemDetail% ORDER BY i.price DESC")
+    List<Item> findByItemDetailLike(String itemDetail);
 
-    // JPQL(JPA Query Language) 쿼리:객체지향 쿼리
-    @Query("SELECT i FROM Item i WHERE i.itemDetail Like %:itemDetail% ORDER BY i.price DESC")
-    List<Item> findByItemDetailLikeNative(String itemDetail);
-
-    // nativeQuery : 실제 데이터베이스에서 상용하는 쿼리를 그대로 사용
+    // nativeQuery: 실제 데이터베이스에서 상용하는 쿼리를 그대로 사용
     @Query(value = "SELECT * FROM item WHERE item_detail LIKE %:itemDetail% ORDER BY price DESC", nativeQuery = true)
-    List<Item> findByItemSellStatusNative(String itemSellStatus);
-
+    List<Item> findByItemDetailLikeNative(String itemDetail);
 
 
 }

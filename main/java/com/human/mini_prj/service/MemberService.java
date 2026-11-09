@@ -5,6 +5,7 @@ import com.human.mini_prj.dto.MemberUpdateReqDto;
 import com.human.mini_prj.dto.PageResDto;
 import com.human.mini_prj.entity.Member;
 import com.human.mini_prj.repository.MemberRepository;
+import com.human.mini_prj.security.SecurityUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -45,11 +46,11 @@ public class MemberService {
     // 회원 수정
     public boolean updateMember(MemberUpdateReqDto dto) {
         try {
-            Member member = memberRepository.findByEmail(dto.getEmail())
-                    .orElseThrow(() -> new IllegalArgumentException("해당 회원이 존재하지 않습니다: " + dto.getEmail()));
+            String email = SecurityUtil.currentEmail();
+            Member member = memberRepository.findByEmail(email)
+                    .orElseThrow(() -> new IllegalArgumentException("해당 회원이 존재하지 않습니다: " + email));
             member.setName(dto.getName());
             member.setImage(dto.getImage());
-            // save() 호출 불필요: 영속 상태의 엔티티는 트랜잭션 커밋 시 변경 감지(Dirty Checking)로 UPDATE 실행
             return true;
         } catch (Exception e) {
             log.error("회원 정보 수정 시 오류 발생: {}", e.getMessage());
@@ -60,6 +61,9 @@ public class MemberService {
     // 회원 삭제
     public boolean deleteMember(String email) {
         try {
+            if (!email.equals(SecurityUtil.currentEmail())) {
+                throw new IllegalArgumentException("본인만 탈퇴할 수 있습니다.");
+            }
             Member member = memberRepository.findByEmail(email)
                     .orElseThrow(() -> new IllegalArgumentException("해당 회원이 존재하지 않습니다: " + email));
             memberRepository.delete(member);
@@ -80,6 +84,9 @@ public class MemberService {
         Page<MemberResDto> memberResDtoPage = memberPage.map(this::toDto);
         return new PageResDto<>(memberResDtoPage);
     }
+
+
+
 
     // Entity를 DTO로 변환하는 메서드 (pwd는 제외)
     private MemberResDto toDto(Member member) {

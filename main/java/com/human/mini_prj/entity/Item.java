@@ -1,7 +1,5 @@
 package com.human.mini_prj.entity;
 
-
-
 import com.human.mini_prj.constant.ItemSellStatus;
 import jakarta.persistence.*;
 import lombok.Getter;

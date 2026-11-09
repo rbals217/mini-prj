@@ -30,6 +30,4 @@ public class ConcertSchedule {
     private LocalDate concertDate;
     @Column(name = "concert_time")
     private LocalTime concertTime;
-
-
 }

@@ -1,66 +1,31 @@
 package com.human.mini_prj.controller;
 
-import com.human.mini_prj.dto.ScheduleReqDto;
 import lombok.RequiredArgsConstructor;
-
-import com.human.mini_prj.entity.Concert;
-import com.human.mini_prj.service.ConcertService;
-import com.human.mini_prj.service.ConcertScheduleService;
-import com.human.mini_prj.dto.ScheduleResDto;
-
+import com.human.mini_prj.entity.Concert; // 본인의 entity 패키지 경로에 맞게 확인
+import com.human.mini_prj.service.ConcertService; // service 패키지 경로
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("/concerts")
-@CrossOrigin(origins = "http://localhost:3000")
+@RequestMapping("/concerts") // 프론트엔드 요청 주소와 매칭
+@CrossOrigin(origins = "http://localhost:3000") // CORS 허용 (프론트 포트에 맞게 조정)
 @RequiredArgsConstructor
 public class ConcertController {
 
     private final ConcertService concertService;
-    private final ConcertScheduleService concertScheduleService;
 
-    // 특정 공연 상세 조회
+    // GET 방식: /concerts/{id} 요청 처리
     @GetMapping("/{id}")
-    public ResponseEntity<Concert> getReservationDetail(
-            @PathVariable Long id) {
-
+    public ResponseEntity<Concert> getReservationDetail(@PathVariable Long id) {
         Concert concert = concertService.getReservationDetail(id);
-
-        return ResponseEntity.ok(concert);
+        return ResponseEntity.ok(concert); // 200 OK와 함께 데이터 전송
     }
 
-    // 전체 공연 목록 조회
-    @GetMapping("")
+    @GetMapping("") // 또는 /concerts
     public ResponseEntity<List<Concert>> getAllConcerts() {
-
-        List<Concert> list = concertService.getAllConcerts();
-
+        List<Concert> list = concertService.getAllConcerts(); // 서비스에서 findAll() 호출
         return ResponseEntity.ok(list);
     }
-
-    // 특정 공연의 회차 목록 조회
-    @GetMapping("/{concertId}/schedules")
-    public ResponseEntity<List<ScheduleResDto>> getSchedules(
-            @PathVariable Long concertId) {
-
-        List<ScheduleResDto> schedules =
-                concertScheduleService.getSchedule(concertId);
-
-        return ResponseEntity.ok(schedules);
-    }
-    @PostMapping("/{concertId}/schedules/bulk")
-    public ResponseEntity<List<ScheduleResDto>> createSchedules(
-            @PathVariable Long concertId,
-            @RequestBody List<ScheduleReqDto> scheduleList) {
-
-        List<ScheduleResDto> result =
-                concertScheduleService.createSchedules(
-                        concertId, scheduleList);
-
-        return ResponseEntity.ok(result);
-    }
-
 }

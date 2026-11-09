@@ -9,7 +9,7 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 public class MemberUpdateReqDto {
-    private String email;  // 수정 대상 회원을 식별하는 값 (수정 불가)
+
     private String name;
     private String image;
 }

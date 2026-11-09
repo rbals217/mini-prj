@@ -22,4 +22,3 @@ public interface SeatRepository extends JpaRepository<Seat, Long> {
             Long scheduleId, String status
     );
 }
-
