@@ -157,5 +157,6 @@ public class AuthService {
         member.setPwd(passwordEncoder.encode(dto.getPwd()));
         member.setUserId(dto.getUserId());
         return member;
+
     }
 }
