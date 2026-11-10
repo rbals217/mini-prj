@@ -18,11 +18,7 @@ import java.util.List;
 public class MemberController {
     private final MemberService memberService;
 
-    // 회원 전체 조회
-    @GetMapping("/list")
-    public ResponseEntity<List<MemberResDto>> memberList() {
-        return ResponseEntity.ok(memberService.getMemberList());
-    }
+
 
     // 회원 상세 조회 : GET http://localhost:8111/member/{email}
     @GetMapping("/{email}")
@@ -46,13 +42,5 @@ public class MemberController {
         return ResponseEntity.ok(memberService.deleteMember(email));
     }
 
-    // 회원 목록 페이지네이션 조회
-    // GET http://localhost:8111/member/list/page?page=1&size=10
-    @GetMapping("/list/page")
-    public ResponseEntity<PageResDto<MemberResDto>> memberListPage(
-            @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "10") int size
-    ) {
-        return ResponseEntity.ok(memberService.getMemberPage(page, size));
-    }
+
 }
