@@ -119,6 +119,7 @@ public class AuthService {
         dto.setEmail(member.getEmail());
         dto.setName(member.getName());
         dto.setImage(member.getImage());
+        dto.setPhone(member.getPhone());    // 추가
         dto.setRegDate(member.getRegDate());
 
         return dto;
@@ -150,13 +151,13 @@ public class AuthService {
         return memberRepository.existsByUserId(userId);
     }
 
-    // DTO -> Entity
     private Member toEntity(SignUpReqDto dto) {
         Member member = new Member();
         member.setName(dto.getName());
         member.setPwd(passwordEncoder.encode(dto.getPwd()));
         member.setUserId(dto.getUserId());
+        member.setEmail(dto.getEmail());  // 추가
+        member.setPhone(dto.getPhone());  // 추가
         return member;
-
     }
 }
