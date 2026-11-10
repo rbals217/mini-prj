@@ -1,6 +1,7 @@
 package com.human.mini_prj.controller;
 
 import com.human.mini_prj.dto.*;
+import com.human.mini_prj.security.SecurityUtil;
 import com.human.mini_prj.service.AuthService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -45,5 +46,16 @@ public class AuthController {
     public ResponseEntity<TokenDto> login(
             @RequestBody LoginReqDto dto) {
         return ResponseEntity.ok(authService.login(dto.getUserId(), dto.getPwd()));
+    }
+    // 재발급
+    @PostMapping("/reissue")
+    public ResponseEntity<TokenDto> reissue(@RequestBody LoginReqDto dto) {
+        return ResponseEntity.ok(authService.reissue(dto.getEmail()));
+    }
+    // 로그아웃
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logout() {
+        authService.logout(SecurityUtil.currentUserId());
+        return ResponseEntity.noContent().build();
     }
 }
