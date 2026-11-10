@@ -1,5 +1,6 @@
 package com.human.mini_prj.entity;
 
+import com.human.mini_prj.constant.Authority;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -16,6 +17,10 @@ public class Member {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "member_id")
     private Long id;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "authority")
+    private Authority authority = Authority.ROLE_USER;
 
     @Column(name = "user_id", unique = true, length = 50)
     private String userId;
