@@ -2,20 +2,16 @@ package com.human.mini_prj.service;
 
 import com.human.mini_prj.dto.MemberResDto;
 import com.human.mini_prj.dto.MemberUpdateReqDto;
-import com.human.mini_prj.dto.PageResDto;
+
 import com.human.mini_prj.entity.Member;
 import com.human.mini_prj.repository.MemberRepository;
 import com.human.mini_prj.security.SecurityUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import java.util.ArrayList;
-import java.util.List;
+
 
 @Slf4j          // log 메시지
 @Service        // Spring Container에 Bean 등록
@@ -24,29 +20,20 @@ import java.util.List;
 public class MemberService {
     private final MemberRepository memberRepository;  // MemberRepository를 의존성 주입 받음
 
-    // 회원 전체 조회
-    @Transactional(readOnly = true)  // 조회 전용: 변경 감지(스냅샷) 생략 → 성능 이점
-    public List<MemberResDto> getMemberList() {
-        List<Member> memberList = memberRepository.findAll();
-        List<MemberResDto> memberResDtoList = new ArrayList<>();
-        for (Member member : memberList) {
-            memberResDtoList.add(toDto(member));
-        }
-        return memberResDtoList;
-    }
+
 
     // 회원 상세 조회
     @Transactional(readOnly = true)
-    public MemberResDto getMemberDetail(String email) {
-        Member member = memberRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("해당 회원이 존재하지 않습니다: " + email));
+    public MemberResDto getMemberDetail(String userId) {
+        Member member = memberRepository.findByEmail(userId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 회원이 존재하지 않습니다: " + userId));
         return toDto(member);
     }
 
     // 회원 수정
     public boolean updateMember(MemberUpdateReqDto dto) {
         try {
-            String email = SecurityUtil.currentEmail();
+            String email = SecurityUtil.currentUserId();
             Member member = memberRepository.findByEmail(email)
                     .orElseThrow(() -> new IllegalArgumentException("해당 회원이 존재하지 않습니다: " + email));
             member.setName(dto.getName());
@@ -61,7 +48,7 @@ public class MemberService {
     // 회원 삭제
     public boolean deleteMember(String email) {
         try {
-            if (!email.equals(SecurityUtil.currentEmail())) {
+            if (!email.equals(SecurityUtil.currentUserId())) {
                 throw new IllegalArgumentException("본인만 탈퇴할 수 있습니다.");
             }
             Member member = memberRepository.findByEmail(email)
@@ -74,17 +61,6 @@ public class MemberService {
         }
     }
 
-    // 회원 목록 페이지 네이지네이션
-    public PageResDto<MemberResDto> getMemberPage(int page, int size) {
-        // PageRequest.of(페이지번호, 페이지크기, 정렬)
-        // - 페이지번호는 0부터 시작 (0 = 첫 페이지)
-        // - Sort.by(정렬방향, "엔티티 필드명") ← DB 컬럼명이 아니라 '엔티티 필드명'을 씀
-        Pageable pageable = PageRequest.of(page, size, Sort.by("regDate").descending());
-        Page<Member> memberPage = memberRepository.findAll(pageable);
-        Page<MemberResDto> memberResDtoPage = memberPage.map(this::toDto);
-        return new PageResDto<>(memberResDtoPage);
-    }
-
 
 
 
@@ -92,6 +68,7 @@ public class MemberService {
     private MemberResDto toDto(Member member) {
         MemberResDto dto = new MemberResDto();
         dto.setId(member.getId());
+        dto.setUserId(member.getUserId());
         dto.setEmail(member.getEmail());
         dto.setName(member.getName());
         dto.setImage(member.getImage());

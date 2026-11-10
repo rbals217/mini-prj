@@ -12,6 +12,7 @@ import java.time.LocalDateTime;
 public class MemberResDto {
     private Long id;
     private String email;
+    private String userId;
     private String name;
     private String image;
     private LocalDateTime regDate;
