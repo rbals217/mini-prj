@@ -9,5 +9,5 @@ import java.util.Optional;
 public interface RefreshTokenRepository extends JpaRepository<RefreshToken, Long> {
     Optional<RefreshToken> findByMember(Member member);
     void deleteByMember(Member member);      // 로그아웃/탈퇴 재사용 감지 시 삭제
-    void deleteByMemberUserId(String email);  // 관리자가 강제 만료 (이메일 기준)
+    void deleteByMemberUserId(String userId);  // 관리자가 강제 만료 (이메일 기준)
 }
