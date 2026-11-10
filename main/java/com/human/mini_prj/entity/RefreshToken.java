@@ -22,10 +22,10 @@ public class RefreshToken {
     private Member member;
 
     @Column(nullable = false,length =512)
-    private String token;
+    private String token;           // 현재 유효한 Refresh Token 값
 
     @Column(nullable = false)
-    private LocalDateTime expiresAt;
+    private LocalDateTime expiresAt;    // 만료 시각
 
     public  RefreshToken (Member member) {
         this.member = member;

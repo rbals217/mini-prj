@@ -39,13 +39,13 @@ public class TokenProvider {
     }
 
     // 로그인·재발급 시 Access + Refresh 한 쌍 발급
-    public TokenDto createToken(String email, Authority authority) {
+    public TokenDto createToken(String userId, Authority authority) {
         long now = System.currentTimeMillis();
         Date accessExp = new Date(now + accessExpMs);
         Date refreshExp = new Date(now + refreshExpMs);
 
         String accessToken = Jwts.builder()
-                .subject(email)                       // sub: 이메일
+                .subject(userId)                       // sub: 이메일
                 .claim(AUTH_KEY, authority.name())    // auth: ROLE_USER
                 .claim(TYPE_KEY, ACCESS)              // typ: access ★
                 .issuedAt(new Date(now))
@@ -54,7 +54,7 @@ public class TokenProvider {
                 .compact();
 
         String refreshToken = Jwts.builder()          // ★ Refresh 발급
-                .subject(email)
+                .subject(userId)
                 .claim(TYPE_KEY, REFRESH)             // typ: refresh (권한 정보 없음)
                 .id(UUID.randomUUID().toString())     // jti: 같은 초에 발급해도 값이 달라지도록
                 .issuedAt(new Date(now))
@@ -79,8 +79,8 @@ public class TokenProvider {
         return false;
     }
 
-    // 토큰의 subject(email) ★
-    public String getEmail(String token) {
+    // 토큰의 subject(userId) ★
+    public String getUserId(String token) {
         return parse(token).getSubject();
     }
 
