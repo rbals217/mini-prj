@@ -1,5 +1,6 @@
 package com.human.mini_prj.service;
 
+import com.human.mini_prj.dto.MemberResDto;
 import com.human.mini_prj.dto.SignUpReqDto;
 import com.human.mini_prj.dto.TokenDto;
 import com.human.mini_prj.entity.Member;
@@ -7,6 +8,7 @@ import com.human.mini_prj.entity.RefreshToken;
 import com.human.mini_prj.exception.CustomException;
 import com.human.mini_prj.repository.MemberRepository;
 import com.human.mini_prj.repository.RefreshTokenRepository;
+import com.human.mini_prj.security.SecurityUtil;
 import com.human.mini_prj.security.TokenProvider;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -31,8 +33,8 @@ public class AuthService {
     private final TokenProvider tokenProvider;
 
     // 회원 가입 여부 확인
-    public boolean isDuplicatedEmail(String email) {
-        return memberRepository.existsByEmail(email);
+    public boolean isDuplicatedEmail(String userId) {
+        return memberRepository.existsByEmail(userId);
     }
 
     // 회원 가입
@@ -49,14 +51,12 @@ public class AuthService {
 
     // 로그인: 성공 → Access + Refresh 토큰 발급, Refresh는 DB 저장
     public TokenDto login(String userId, String pwd) {
-        // 아이디로 회원 조회
         Member member = memberRepository.findByUserId(userId)
                 .orElseThrow(this::loginFailed);
-        // 암호화된 비밀번호 검증
         if (!passwordEncoder.matches(pwd, member.getPwd())) {   // 평문 vs 해시 비교
             throw loginFailed();
         }
-        TokenDto tokenDto = tokenProvider.createToken(member.getUserId(), member.getAuthority());
+        TokenDto tokenDto = tokenProvider.createToken(userId, member.getAuthority());
         saveRefreshToken(member, tokenDto);   // 추가
         return tokenDto;
     }
@@ -80,13 +80,13 @@ public class AuthService {
         // ③ 서명은 유효한데 DB 값과 다름 = 이미 교체된 옛 토큰 재사용 → 탈취로 판단
         if (!saved.getToken().equals(refreshToken)) {
             refreshTokenRepository.delete(saved);   // 공격자·사용자 모두 재로그인 필요
-            log.warn("Refresh Token 재사용 감지 → DB 토큰 삭제: {}", email);
+            log.warn("Refresh Token 재사용 감지 → DB 토큰 삭제: {}", userId);
             throw new CustomException(HttpStatus.UNAUTHORIZED, "REFRESH_REUSED",
                     "토큰 재사용이 감지되어 로그아웃되었습니다. 다시 로그인하세요.");
         }
 
         // ④ 새 토큰 쌍 발급 + DB 값 교체 → 방금 쓴 Refresh는 더 이상 사용할 수 없음
-        TokenDto newToken = tokenProvider.createToken(member.getEmail(), member.getAuthority());
+        TokenDto newToken = tokenProvider.createToken(member.getUserId(), member.getAuthority());
         saved.setToken(newToken.refreshToken());
         saved.setExpiresAt(toLocalDateTime(newToken.refreshTokenExpiresIn()));
         return newToken;   // 변경 감지(Dirty Checking)로 UPDATE
@@ -99,11 +99,30 @@ public class AuthService {
     }
 
     // 관리자 강제 만료: 탈취 신고 시 해당 회원의 Refresh Token 삭제
-    public void revoke(String email) {
-        refreshTokenRepository.deleteByMemberEmail(email);
+    public void revoke(String userId) {
+        refreshTokenRepository.deleteByMemberUserId(userId);
     }
 
+    // 마이페이지 회원 정보 조회
+    @Transactional(readOnly = true)
+    public MemberResDto getMemberInfo() {
 
+        String userId = SecurityUtil.currentUserId();
+
+        Member member = memberRepository.findByUserId(userId)
+                .orElseThrow(() ->
+                        new IllegalArgumentException("해당 회원이 존재하지 않습니다."));
+
+        MemberResDto dto = new MemberResDto();
+        dto.setId(member.getId());
+        dto.setUserId(member.getUserId());
+        dto.setEmail(member.getEmail());
+        dto.setName(member.getName());
+        dto.setImage(member.getImage());
+        dto.setRegDate(member.getRegDate());
+
+        return dto;
+    }
 
     // 회원당 1개: 있으면 덮어쓰고, 없으면 새로 저장
     private void saveRefreshToken(Member member, TokenDto tokenDto) {
@@ -127,13 +146,16 @@ public class AuthService {
     private CustomException invalidRefresh() {
         return new CustomException(HttpStatus.UNAUTHORIZED, "INVALID_REFRESH", "Refresh Token이 유효하지 않습니다. 다시 로그인하세요.");
     }
+    public boolean existsUserId(String userId) {
+        return memberRepository.existsByUserId(userId);
+    }
 
     // DTO -> Entity
     private Member toEntity(SignUpReqDto dto) {
         Member member = new Member();
         member.setName(dto.getName());
         member.setPwd(passwordEncoder.encode(dto.getPwd()));
-        member.setEmail(dto.getEmail());
+        member.setUserId(dto.getUserId());
         return member;
     }
 }

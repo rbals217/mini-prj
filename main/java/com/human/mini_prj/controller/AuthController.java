@@ -1,10 +1,7 @@
 package com.human.mini_prj.controller;
 
-import com.human.mini_prj.dto.LoginReqDto;
-import com.human.mini_prj.dto.LoginResDto;
-import com.human.mini_prj.dto.SignUpReqDto;
+import com.human.mini_prj.dto.*;
 import com.human.mini_prj.service.AuthService;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -15,7 +12,6 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/auth")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "http://localhost:3000", allowCredentials = "true")
 public class AuthController {
 
     private final AuthService authService;
@@ -39,25 +35,15 @@ public class AuthController {
     }
 
     // 마이페이지 회원 정보 조회
-    @GetMapping("/mypage/{memberId}")
-    public ResponseEntity<LoginResDto> getMyPage(
-            @PathVariable Long memberId) {
-
-        return ResponseEntity.ok(authService.getMemberInfo(memberId));
+    @GetMapping("/mypage")
+    public ResponseEntity<MemberResDto> getMyPage() {
+        return ResponseEntity.ok(authService.getMemberInfo());
     }
 
     // 로그인
     @PostMapping("/login")
-    public ResponseEntity<LoginResDto> login(
+    public ResponseEntity<TokenDto> login(
             @RequestBody LoginReqDto dto) {
-
-        LoginResDto result =
-                authService.login(dto.getUserId(), dto.getPwd());
-
-        if (result == null) {
-            return ResponseEntity.status(401).build();
-        }
-
-        return ResponseEntity.ok(result);
+        return ResponseEntity.ok(authService.login(dto.getUserId(), dto.getPwd()));
     }
 }
