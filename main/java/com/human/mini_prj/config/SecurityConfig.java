@@ -47,6 +47,7 @@ public class SecurityConfig {
                         .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/board/**", "/comment/**").permitAll()
                         .requestMatchers("/admin/**").hasRole("ADMIN") // * 추가
+                        .requestMatchers("/ws/**", "/chat/**").permitAll()     // 채팅은 JWT 제외
                         // ⭐ 추가: 콘서트 조회 허용 (홈 화면, 목록, 상세)
                         .requestMatchers(HttpMethod.GET, "/concerts/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/seats/*/remaining").permitAll()
