@@ -22,7 +22,9 @@ public class ReservationResDto {
     public ReservationResDto(Reservation reservation) {
         this.reservationId =reservation.getId();
 
-        this.scheduleId = reservation.getConcertSchedule().getId();
+       this.scheduleId = reservation.getConcertSchedule() !=null
+               ? reservation.getConcertSchedule().getId()
+               : null;
         this.status =reservation.getStatus();
         this.reservedAt = reservation.getReservedAt();
     }
