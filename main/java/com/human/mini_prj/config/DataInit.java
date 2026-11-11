@@ -130,7 +130,7 @@ public class DataInit {
     private void createSchedulesAndSeats() {
 
         LocalDate startDate = LocalDate.of(2026, 11, 11);
-        LocalDate endDate = LocalDate.of(2027, 2, 28);
+        LocalDate endDate = LocalDate.of(2027, 12, 31);
 
         // 하루 2회 공연
         List<LocalTime> times = Arrays.asList(
