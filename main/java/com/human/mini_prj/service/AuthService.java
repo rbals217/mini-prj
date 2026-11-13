@@ -95,6 +95,9 @@ public class AuthService {
         member.setImage(info.profileImage());
         member.setProvider(Provider.KAKAO);
         member.setProviderId(info.id());
+        // 카카오 회원은 일반 비밀번호 로그인을사용하지 않으므로
+        // 비밀번호를 BCrypt로 암호화해서 저저ㅏㅇ
+        member.setPwd(passwordEncoder.encode(java.util.UUID.randomUUID().toString()));
         return member;                            // pwd는 null
     }
 

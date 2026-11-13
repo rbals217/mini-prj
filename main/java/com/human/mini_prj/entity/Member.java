@@ -22,14 +22,15 @@ public class Member {
     @Column(name = "user_id", unique = true, length = 50)
     private String userId;
 
+    @Column(length = 100)
     private String name;
-
+    @Column(length = 100)
     private String phone;
-
+    @Column(nullable = true)
     private String pwd;
-
+    @Column(unique = true,length = 150)
     private String email;
-
+    @Column(length = 255)
     private String image;
 
     private LocalDateTime regDate;

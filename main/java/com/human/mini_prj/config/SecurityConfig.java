@@ -44,6 +44,7 @@ public class SecurityConfig {
                         .requestMatchers("/error").permitAll()
                         .requestMatchers("/auth/logout").authenticated()    // * 먼저
                         .requestMatchers("/auth/**").permitAll()            // reissue 포함
+                        .requestMatchers("/oauth/kakao").permitAll()
                         .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/board/**", "/comment/**").permitAll()
                         .requestMatchers("/admin/**").hasRole("ADMIN") // * 추가
