@@ -17,11 +17,8 @@ public class AuthController {
 
     private final AuthService authService;
 
-    // 이메일 중복 확인
-    @GetMapping("/exists/{email}")
-    public boolean existsEmail(@PathVariable String email) {
-        return authService.isDuplicatedEmail(email);
-    }
+
+
 
     // 아이디 중복 확인
     @GetMapping("/exists/id/{userId}")

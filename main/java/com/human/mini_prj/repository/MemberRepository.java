@@ -5,8 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import com.human.mini_prj.constant.Provider;
-import java.time.LocalDateTime;
-import java.util.List;
+
 import java.util.Optional;
 
 // interface 에서 생성해서 쿼리문을 hibernate에서 생성

@@ -35,9 +35,10 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final TokenProvider tokenProvider;
     private final KakaoOAuthService kakaoOAuthService;
-    // 회원 가입 여부 확인
-    public boolean isDuplicatedEmail(String userId) {
-        return memberRepository.existsByEmail(userId);
+
+    // 아이디 중복 확인
+    public boolean existsUserId(String userId) {
+        return memberRepository.existsByUserId(userId);
     }
 
     // 회원 가입
@@ -97,6 +98,8 @@ public class AuthService {
     // ★ 카카오 사용자 → Member
     private Member toKakaoMember(KakaoUserInfo info) {
         Member member = new Member();
+
+        member.setUserId("kakao_" + info.id()); // DB 에 userId 추가
         member.setEmail("kakao_" + info.id());   // 이메일 대신 고유한 대체값 → 토큰 sub·작성자 확인 코드 그대로 사용
         member.setName(info.nickname());
         member.setImage(info.profileImage());
@@ -266,14 +269,10 @@ public class AuthService {
         );
     }
 
-    // 아이디 중복 확인
-    public boolean existsUserId(String userId) {
-        return memberRepository.existsByUserId(userId);
-    }
 
-    // 회원가입 DTO → Entity
+
+    // 일반 회원가입 DTO -> Entity
     private Member toEntity(SignUpReqDto dto) {
-
         Member member = new Member();
 
         member.setName(dto.getName());
@@ -281,6 +280,10 @@ public class AuthService {
         member.setUserId(dto.getUserId());
         member.setEmail(dto.getEmail());
         member.setPhone(dto.getPhone());
+
+        // 일반 회원가입은 LOCAL로 지정
+        member.setProvider(Provider.LOCAL);
+        member.setProviderId(null);
 
         return member;
     }
