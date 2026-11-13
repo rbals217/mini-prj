@@ -78,10 +78,17 @@ public class AuthService {
 
         // 처음 이면 자종 가입, 이미 있으면 그대로 사용
         Member member = memberRepository.findByProviderAndProviderId(Provider.KAKAO, info.id())
-                .orElseGet(() -> memberRepository.save(toKakaoMember(info)));
+                .orElseGet(() -> {
+                    Member newMember = toKakaoMember(info);
+
+                    System.out.println("카카오 회원 pwd 설정 여부: "
+                            + (newMember.getPwd() != null));
+
+                    return memberRepository.save(newMember);
+                });
 
         // 여기부터는 일반 로그인과 완전히 같음 (기존 코드 재사용)
-        TokenDto tokenDto = tokenProvider.createToken(member.getEmail(), member.getAuthority());
+        TokenDto tokenDto = tokenProvider.createToken(member.getUserId(), member.getAuthority());
         saveRefreshToken(member, tokenDto);
         return tokenDto;
 
