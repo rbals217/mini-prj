@@ -58,4 +58,9 @@ public class AuthController {
         authService.logout(SecurityUtil.currentUserId());
         return ResponseEntity.noContent().build();
     }
+    // 카카오 로그인: 인카 코드--> 우리 서비스 토큰 발행
+    @PostMapping("/kakao")
+    public ResponseEntity<TokenDto> kakaoLogin (@RequestBody KakaoLoginReqDto dto) {
+        return ResponseEntity.ok(authService.kakaoLogin(dto.code()));
+    }
 }
