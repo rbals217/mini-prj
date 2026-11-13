@@ -1,3 +1,4 @@
+
 package com.human.mini_prj.service;
 
 import com.human.mini_prj.dto.MemberResDto;
@@ -21,14 +22,14 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 
-
-@Slf4j  // log 메시지 출력을 위해 사용
-@Service  // Spring Container에 Bean 등록
-@Transactional // 트랜잭션 처리: 여러개의 물리적인 작업 단위를 한개의 논리적인 단위로 묶음
-@RequiredArgsConstructor  // 생성자를 통한 의존성 주입을 자동으로 만들어 줌
+@Slf4j
+@Service
+@Transactional
+@RequiredArgsConstructor
 public class AuthService {
-    private final MemberRepository memberRepository;  // 생성자를 통한 의존성 주입
-    private final RefreshTokenRepository refreshTokenRepository;  // 리플레시 토큰
+
+    private final MemberRepository memberRepository;
+    private final RefreshTokenRepository refreshTokenRepository;
     private final PasswordEncoder passwordEncoder;
     private final TokenProvider tokenProvider;
 
@@ -44,63 +45,122 @@ public class AuthService {
             memberRepository.save(member);
             return true;
         } catch (Exception e) {
-            log.error("회원 가입 시 오류 발생: {}", e.getMessage());
+            log.error("회원 가입 시 오류 발생: {}", e.getMessage(), e);
             return false;
         }
     }
 
-    // 로그인: 성공 → Access + Refresh 토큰 발급, Refresh는 DB 저장
+    // 로그인
     public TokenDto login(String userId, String pwd) {
+
         Member member = memberRepository.findByUserId(userId)
                 .orElseThrow(this::loginFailed);
-        if (!passwordEncoder.matches(pwd, member.getPwd())) {   // 평문 vs 해시 비교
+
+        if (!passwordEncoder.matches(pwd, member.getPwd())) {
             throw loginFailed();
         }
-        TokenDto tokenDto = tokenProvider.createToken(userId, member.getAuthority());
-        saveRefreshToken(member, tokenDto);   // 추가
+
+        TokenDto tokenDto =
+                tokenProvider.createToken(userId, member.getAuthority());
+
+        saveRefreshToken(member, tokenDto);
+
+        log.info("로그인 성공: {}", userId);
+
         return tokenDto;
     }
 
-    // 재발급: Refresh 검증 → DB 값과 비교 → 새 토큰 쌍 발급 + DB 교체 (Rotation)
-    // 재사용 감지 시 DB 토큰을 지우고 예외를 던지므로, 삭제가 롤백되지 않게 noRollbackFor 지정
+    // Refresh Token 재발급
     @Transactional(noRollbackFor = CustomException.class)
     public TokenDto reissue(String refreshToken) {
-        // ① 서명·만료·종류(refresh) 검증
+
+        log.info("========== 토큰 재발급 시작 ==========");
+
+        // ① Refresh Token 검증
+        log.info("① Refresh Token 검증 시작");
+
         if (!tokenProvider.validate(refreshToken, TokenProvider.REFRESH)) {
+            log.error("① Refresh Token 검증 실패");
             throw invalidRefresh();
         }
+
+        log.info("① Refresh Token 검증 성공");
+
+        // ② 토큰에서 회원 ID 추출
         String userId = tokenProvider.getUserId(refreshToken);
+
+        log.info("② 토큰 회원 ID 추출 성공: {}", userId);
+
+        // ③ 회원 조회
         Member member = memberRepository.findByUserId(userId)
-                .orElseThrow(this::invalidRefresh);
+                .orElseThrow(() -> {
+                    log.error("③ 회원 조회 실패: {}", userId);
+                    return invalidRefresh();
+                });
 
-        // ② DB에 저장된 토큰 조회 (로그아웃·강제 만료됐다면 없음)
+        log.info("③ 회원 조회 성공: {}", userId);
+
+        // ④ DB에 저장된 Refresh Token 조회
         RefreshToken saved = refreshTokenRepository.findByMember(member)
-                .orElseThrow(this::invalidRefresh);
+                .orElseThrow(() -> {
+                    log.error("④ DB에 Refresh Token이 존재하지 않음: {}", userId);
+                    return invalidRefresh();
+                });
 
-        // ③ 서명은 유효한데 DB 값과 다름 = 이미 교체된 옛 토큰 재사용 → 탈취로 판단
+        log.info("④ DB Refresh Token 조회 성공");
+
+        // ⑤ 요청 토큰과 DB 토큰 비교
         if (!saved.getToken().equals(refreshToken)) {
-            refreshTokenRepository.delete(saved);   // 공격자·사용자 모두 재로그인 필요
-            log.warn("Refresh Token 재사용 감지 → DB 토큰 삭제: {}", userId);
-            throw new CustomException(HttpStatus.UNAUTHORIZED, "REFRESH_REUSED",
-                    "토큰 재사용이 감지되어 로그아웃되었습니다. 다시 로그인하세요.");
+
+            log.warn("⑤ Refresh Token 불일치: {}", userId);
+
+            refreshTokenRepository.delete(saved);
+
+            log.warn("DB Refresh Token 삭제 완료: {}", userId);
+
+            throw new CustomException(
+                    HttpStatus.UNAUTHORIZED,
+                    "REFRESH_REUSED",
+                    "토큰 재사용이 감지되어 로그아웃되었습니다. 다시 로그인하세요."
+            );
         }
 
-        // ④ 새 토큰 쌍 발급 + DB 값 교체 → 방금 쓴 Refresh는 더 이상 사용할 수 없음
-        TokenDto newToken = tokenProvider.createToken(member.getUserId(), member.getAuthority());
+        log.info("⑤ Refresh Token 일치 확인");
+
+        // ⑥ 새 토큰 발급
+        TokenDto newToken = tokenProvider.createToken(
+                member.getUserId(),
+                member.getAuthority()
+        );
+
+        // ⑦ DB에 새 Refresh Token 저장
         saved.setToken(newToken.refreshToken());
-        saved.setExpiresAt(toLocalDateTime(newToken.refreshTokenExpiresIn()));
-        return newToken;   // 변경 감지(Dirty Checking)로 UPDATE
+        saved.setExpiresAt(
+                toLocalDateTime(newToken.refreshTokenExpiresIn())
+        );
+
+        log.info("⑥ 새 토큰 발급 완료");
+        log.info("⑦ DB Refresh Token 갱신 완료");
+        log.info("========== 토큰 재발급 종료 ==========");
+
+        return newToken;
     }
 
-    // 로그아웃: 내 Refresh Token 삭제 → 더 이상 재발급 불가
+    // 로그아웃
     public void logout(String userId) {
+
         memberRepository.findByUserId(userId)
                 .ifPresent(refreshTokenRepository::deleteByMember);
+
+        log.info("로그아웃 처리 완료: {}", userId);
     }
 
-    // 관리자 강제 만료: 탈취 신고 시 해당 회원의 Refresh Token 삭제
+    // 관리자 강제 만료
     public void revoke(String userId) {
+
         refreshTokenRepository.deleteByMemberUserId(userId);
+
+        log.info("Refresh Token 강제 만료 처리: {}", userId);
     }
 
     // 마이페이지 회원 정보 조회
@@ -114,50 +174,75 @@ public class AuthService {
                         new IllegalArgumentException("해당 회원이 존재하지 않습니다."));
 
         MemberResDto dto = new MemberResDto();
+
         dto.setId(member.getId());
         dto.setUserId(member.getUserId());
         dto.setEmail(member.getEmail());
         dto.setName(member.getName());
         dto.setImage(member.getImage());
-        dto.setPhone(member.getPhone());    // 추가
+        dto.setPhone(member.getPhone());
         dto.setRegDate(member.getRegDate());
 
         return dto;
     }
 
-    // 회원당 1개: 있으면 덮어쓰고, 없으면 새로 저장
+    // 회원당 Refresh Token 1개 저장
     private void saveRefreshToken(Member member, TokenDto tokenDto) {
-        RefreshToken refreshToken = refreshTokenRepository.findByMember(member)
-                .orElseGet(() -> new RefreshToken(member));
+
+        RefreshToken refreshToken =
+                refreshTokenRepository.findByMember(member)
+                        .orElseGet(() -> new RefreshToken(member));
+
         refreshToken.setToken(tokenDto.refreshToken());
-        refreshToken.setExpiresAt(toLocalDateTime(tokenDto.refreshTokenExpiresIn()));
+        refreshToken.setExpiresAt(
+                toLocalDateTime(tokenDto.refreshTokenExpiresIn())
+        );
+
         refreshTokenRepository.save(refreshToken);
     }
 
     private LocalDateTime toLocalDateTime(long epochMillis) {
-        return LocalDateTime.ofInstant(Instant.ofEpochMilli(epochMillis), ZoneId.systemDefault());
+
+        return LocalDateTime.ofInstant(
+                Instant.ofEpochMilli(epochMillis),
+                ZoneId.systemDefault()
+        );
     }
 
-
     private CustomException loginFailed() {
-        // 이메일/비밀번호 중 무엇이 틀렸는지 알려주지 않는 것이 보안상 안전
-        return new CustomException(HttpStatus.UNAUTHORIZED, "LOGIN_FAILED", "이메일 또는 비밀번호가 올바르지 않습니다.");
+
+        return new CustomException(
+                HttpStatus.UNAUTHORIZED,
+                "LOGIN_FAILED",
+                "이메일 또는 비밀번호가 올바르지 않습니다."
+        );
     }
 
     private CustomException invalidRefresh() {
-        return new CustomException(HttpStatus.UNAUTHORIZED, "INVALID_REFRESH", "Refresh Token이 유효하지 않습니다. 다시 로그인하세요.");
+
+        return new CustomException(
+                HttpStatus.UNAUTHORIZED,
+                "INVALID_REFRESH",
+                "Refresh Token이 유효하지 않습니다. 다시 로그인하세요."
+        );
     }
+
+    // 아이디 중복 확인
     public boolean existsUserId(String userId) {
         return memberRepository.existsByUserId(userId);
     }
 
+    // 회원가입 DTO → Entity
     private Member toEntity(SignUpReqDto dto) {
+
         Member member = new Member();
+
         member.setName(dto.getName());
         member.setPwd(passwordEncoder.encode(dto.getPwd()));
         member.setUserId(dto.getUserId());
-        member.setEmail(dto.getEmail());  // 추가
-        member.setPhone(dto.getPhone());  // 추가
+        member.setEmail(dto.getEmail());
+        member.setPhone(dto.getPhone());
+
         return member;
     }
 }

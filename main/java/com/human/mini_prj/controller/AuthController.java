@@ -5,7 +5,7 @@ import com.human.mini_prj.security.SecurityUtil;
 import com.human.mini_prj.service.AuthService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
+import com.human.mini_prj.dto.ReissueReqDto;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -49,8 +49,8 @@ public class AuthController {
     }
     // 재발급
     @PostMapping("/reissue")
-    public ResponseEntity<TokenDto> reissue(@RequestBody LoginReqDto dto) {
-        return ResponseEntity.ok(authService.reissue(dto.getEmail()));
+    public ResponseEntity<TokenDto> reissue(@RequestBody ReissueReqDto dto) {
+        return ResponseEntity.ok(authService.reissue(dto.refreshToken()));
     }
     // 로그아웃
     @PostMapping("/logout")

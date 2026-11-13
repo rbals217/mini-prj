@@ -70,12 +70,23 @@ public class TokenProvider {
     public boolean validate(String token, String expectedType) {
         try {
             Claims claims = parse(token);
-            return expectedType.equals(claims.get(TYPE_KEY, String.class));
+
+            String actualType = claims.get(TYPE_KEY, String.class);
+
+            log.info("JWT 검증 성공");
+            log.info("토큰 종류: {}", actualType);
+            log.info("기대 토큰 종류: {}", expectedType);
+            log.info("회원 ID: {}", claims.getSubject());
+
+            return expectedType.equals(actualType);
+
         } catch (ExpiredJwtException e) {
-            log.info("만료된 JWT");
+            log.error("만료된 JWT: {}", e.getMessage());
+
         } catch (JwtException | IllegalArgumentException e) {
-            log.info("잘못된 JWT: {}", e.getMessage());
+            log.error("잘못된 JWT: {}", e.getMessage());
         }
+
         return false;
     }
 
