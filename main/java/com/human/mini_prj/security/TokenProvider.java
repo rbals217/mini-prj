@@ -44,6 +44,10 @@ public class TokenProvider {
         Date accessExp = new Date(now + accessExpMs);
         Date refreshExp = new Date(now + refreshExpMs);
 
+        log.info("========== JWT 발급 확인 ==========");
+        log.info("Access 만료 설정: {}ms", accessExpMs);
+        log.info("Access 발급 시간: {}", new Date(now));
+        log.info("Access 만료 시간: {}", accessExp);
         String accessToken = Jwts.builder()
                 .subject(userId)                       // sub: 이메일
                 .claim(AUTH_KEY, authority.name())    // auth: ROLE_USER

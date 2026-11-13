@@ -117,7 +117,14 @@ public class AuthService {
     public TokenDto reissue(String refreshToken) {
 
         log.info("========== 토큰 재발급 시작 ==========");
-
+        log.info("Refresh Token null 여부: {}", refreshToken == null);
+        log.info("Refresh Token 길이: {}",
+                refreshToken == null ? 0 : refreshToken.length());
+        log.info("Refresh Token 공백 포함 여부: {}",
+                refreshToken != null && refreshToken.matches(".*\\s.*"));
+        log.info("Refresh Token 점 개수: {}",
+                refreshToken == null ? 0 : refreshToken.chars()
+                        .filter(ch -> ch == '.').count());
         // ① Refresh Token 검증
         log.info("① Refresh Token 검증 시작");
 
