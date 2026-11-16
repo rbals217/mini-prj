@@ -44,7 +44,7 @@ public class SecurityConfig {
                         .requestMatchers("/error").permitAll()  //로그인없이 접근 가능해야함
                         .requestMatchers("/auth/login").permitAll()
                         .requestMatchers("/auth/signup").permitAll()
-                        .requestMatchers("auth/reissue").permitAll()
+                        .requestMatchers("/auth/reissue").permitAll()
                         .requestMatchers("/auth/kakao/**").permitAll()
                         .requestMatchers("/auth/exists/**").permitAll() //회원 존재 여부확인  서비스와 컨트롤러에서 조회하는것
                         .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
