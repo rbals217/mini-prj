@@ -52,7 +52,7 @@ public class SecurityConfig {
 
                         .requestMatchers("/ws/**", "/chat/**").permitAll()     // 채팅은 JWT 제외
                         // JWT 인증 필요
-                        .requestMatchers("/auth/logout").authenticated()
+                        .requestMatchers("/auth/mypage").authenticated()
                         .requestMatchers("/auth/logout").authenticated()
                         // 어드민 권한 필요
                         .requestMatchers("/admin/**").hasRole("ADMIN")
