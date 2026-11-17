@@ -5,6 +5,7 @@ import com.human.mini_prj.dto.ReservationResDto;
 import com.human.mini_prj.entity.*;
 import com.human.mini_prj.repository.*;
 
+import com.human.mini_prj.security.SecurityUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,46 +21,54 @@ public class ReservationService {
     private final SeatRepository seatRepository;
     private final ReservationRepository reservationRepository;
     private final ReservationSeatRepository reservationSeatRepository;
+    //맴버 추가
+    private final MemberRepository memberRepository;
 
     // 예매 생성
     @Transactional
     public ReservationResDto createReservation(ReservationReqDto dto) {
 
-        // 1. 공연 회차 조회
-        ConcertSchedule schedule = concertScheduleRepository.findById(dto.getScheduleId())
+        // 1. 현재 로그인한 회원 조회 ( JWT)
+        String userId = SecurityUtil.currentUserId();       // JWT 에서 로그인한 회원의 유저아이디 가져오기
+
+        Member member = memberRepository.findByUserId(userId)
                 .orElseThrow(() ->
+                        new RuntimeException("회원 정보를 찾을 수 없습니다.")
+                );
+        // 2. 공연 회차 조회
+
+        ConcertSchedule schedule = concertScheduleRepository.findById(dto.getScheduleId())
+                .orElseThrow(()->
                         new RuntimeException("공연 회차가 존재하지 않습니다.")
                 );
 
-        // 2. 선택한 좌석 조회
+        // 3. 선택한 좌석 조회
         List<Seat> seats = new ArrayList<>();
 
         for (String seatNumber : dto.getSeatNumbers()) {
-
             Seat seat = seatRepository
                     .findBySchedule_IdAndSeatNumber(
                             dto.getScheduleId(),
                             seatNumber
                     )
-                    .orElseThrow(() ->
+                    .orElseThrow(()->
                             new RuntimeException(
-                                    seatNumber + " 좌석이 해당 공연 회차에 없습니다."
+                                    seatNumber +"좌석이 해당 공연 회차에 없습니다."
                             )
                     );
-
             seats.add(seat);
         }
-
-        // 3. 예매 객체 생성
+        // 4. 예매 객체 생성
         Reservation reservation = new Reservation();
 
+        reservation.setMember(member);  // 로그인한 회원 연결
         reservation.setConcertSchedule(schedule);
         reservation.setStatus("PENDING");
 
         Reservation saved = reservationRepository.save(reservation);
 
-        // 4. 선택한 좌석을 예매 정보에 연결
-        for (Seat seat : seats) {
+        // 5. 선택한 좌석을 예매 정보에 연결
+        for (Seat seat: seats) {
 
             ReservationSeat reservationSeat = new ReservationSeat();
 
@@ -68,8 +77,7 @@ public class ReservationService {
 
             reservationSeatRepository.save(reservationSeat);
         }
-
-        return new ReservationResDto(saved);
+        return  new ReservationResDto(saved);
     }
 
     // 예매 상세 조회

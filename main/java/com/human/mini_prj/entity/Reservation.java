@@ -25,6 +25,11 @@ public class Reservation {
     @JoinColumn(name = "schedule_id")
     private ConcertSchedule concertSchedule;
 
+    // 회원 연결 / member_id 추가 ( 예매 번호 추가함으로서 회원검증)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "member_id")
+    private Member member;
+
 
 
 }
