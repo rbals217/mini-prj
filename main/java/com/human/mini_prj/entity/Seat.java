@@ -10,7 +10,7 @@ import lombok.Setter;
 public class Seat {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long Id;
+    private Long id;
     private String seatNumber;
     private String status = "AVAILABLE";
     private int price;

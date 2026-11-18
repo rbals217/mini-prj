@@ -1,6 +1,7 @@
 
 package com.human.mini_prj.service;
 
+import com.human.mini_prj.constant.Authority;
 import com.human.mini_prj.constant.Provider;
 import com.human.mini_prj.dto.KakaoUserInfo;
 import com.human.mini_prj.dto.MemberResDto;
@@ -98,13 +99,22 @@ public class AuthService {
     // ★ 카카오 사용자 → Member
     private Member toKakaoMember(KakaoUserInfo info) {
         Member member = new Member();
+// ① 카카오에서 필수 정보가 아예 안 넘어왔는지 방어
+        if (info == null || info.id() == null || info.id().isBlank()) {
+            throw new CustomException(HttpStatus.BAD_REQUEST, "KAKAO_INFO_MISSING", "카카오로부터 필수 사용자 정보를 가져오지 못했습니다.");
+        }
 
         member.setUserId("kakao_" + info.id()); // DB 에 userId 추가
         member.setEmail("kakao_" + info.id());   // 이메일 대신 고유한 대체값 → 토큰 sub·작성자 확인 코드 그대로 사용
+        // ② 닉네임이 비어있는 비정상 케이스 방어
+        if (info.nickname() == null || info.nickname().isBlank()) {
+            throw new CustomException(HttpStatus.BAD_REQUEST, "KAKAO_NICKNAME_MISSING", "카카오 닉네임 정보가 제공되지 않았습니다.");
+        }
         member.setName(info.nickname());
         member.setImage(info.profileImage());
         member.setProvider(Provider.KAKAO);
         member.setProviderId(info.id());
+        member.setAuthority(Authority.ROLE_USER);
         // 카카오 회원은 일반 비밀번호 로그인을사용하지 않으므로
         // 비밀번호를 BCrypt로 암호화해서 저저ㅏㅇ
         member.setPwd(passwordEncoder.encode(java.util.UUID.randomUUID().toString()));

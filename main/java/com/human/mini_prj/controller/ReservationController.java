@@ -9,6 +9,8 @@ import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @Slf4j
 @RestController
 @RequestMapping("/reservations")
@@ -40,5 +42,10 @@ public class ReservationController {
             @PathVariable Long reservationId) {
 
         return reservationService.getReservation(reservationId);
+    }
+    // 내 예매 내역 조회
+    @GetMapping("/my")
+    public List<ReservationResDto>  getMyReservations() {
+        return reservationService.getMyReservations();
     }
 }

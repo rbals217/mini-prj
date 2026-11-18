@@ -23,7 +23,7 @@ public class ConcertSchedule {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
 
 
-    private Long id;   // 콘서트 id (1,2 )
+    private Long id;   // 회차 id (1,2 )
     @Column(name = "concert_id")
     private Long concertId;
     @Column(name = "concert_date")

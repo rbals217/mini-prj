@@ -5,6 +5,8 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name="reservation")
@@ -30,6 +32,8 @@ public class Reservation {
     @JoinColumn(name = "member_id")
     private Member member;
 
-
+    // 예약에 연결된 좌석 목록
+    @OneToMany(mappedBy = "reservation", fetch = FetchType.LAZY)
+    private List<ReservationSeat> reservationSeats = new ArrayList<>();
 
 }

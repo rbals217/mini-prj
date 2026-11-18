@@ -31,7 +31,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(DataAccessException.class)
     public ResponseEntity<ErrorResponse> handleDBError(DataAccessException ex) {
-        log.error("DB 오류: {}", ex.getMessage());   // 원인은 로그로 확인 (화면에는 노출하지 않음)
+        log.error("DB 오류 발생", ex);   // 원인은 로그로 확인 (화면에는 노출하지 않음)
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(new ErrorResponse("데이터베이스 오류가 발생했습니다.", "DB_ERROR"));
