@@ -22,4 +22,7 @@ public interface ConcertScheduleRepository
             LocalDate concertDate,
             LocalTime concertTime
     );
+    //추가. 선택한 날짜에 등록된 모든 공연 회차 조회
+    List<ConcertSchedule>
+    findByConcertDateOrderByConcertTimeAsc(LocalDate concertDate);
 }
