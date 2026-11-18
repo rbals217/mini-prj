@@ -1,10 +1,13 @@
 package com.human.mini_prj.controller;
+import com.human.mini_prj.dto.ConcertDateResDto;
 import com.human.mini_prj.dto.ScheduleDateReqDto;
 import com.human.mini_prj.dto.ScheduleReqDto;
 import com.human.mini_prj.dto.ScheduleResDto;
 import com.human.mini_prj.service.ConcertScheduleService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -38,5 +41,12 @@ public class ConcertScheduleController {
                 concertId,
                 dto.getConcertDate()
         );
+    }
+    // 선택한 날짜에 등록된 전체 공연 조회
+    @GetMapping("/schedules/by-date")
+    public List<ConcertDateResDto> getConcertsByDate(
+            @RequestParam LocalDate date) {
+
+        return scheduleService.getConcertsByDate(date);
     }
 }
