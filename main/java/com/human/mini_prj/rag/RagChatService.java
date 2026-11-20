@@ -2,10 +2,7 @@ package com.human.mini_prj.rag;
 
 import com.human.mini_prj.entity.Concert;
 import com.human.mini_prj.exception.CustomException;
-import com.human.mini_prj.rag.dto.QueryReqDto;
-import com.human.mini_prj.rag.dto.QueryResDto;
-import com.human.mini_prj.rag.dto.RagChatReqDto;
-import com.human.mini_prj.rag.dto.SourceDto;
+import com.human.mini_prj.rag.dto.*;
 
 import com.human.mini_prj.repository.ConcertRepository;
 import com.human.mini_prj.security.SecurityUtil;
@@ -55,5 +52,36 @@ public class RagChatService {
                 .map(Concert::getId)
                 .toList();
     }
+    // DB에 저장된 전체 공연 색인
+    public int indexAllConcerts() {
 
+        // 1. DB에서 공연 전체 조회
+        List<Concert> concerts = concertRepository.findAll();
+
+        int totalChunks = 0;
+
+        // 2. 공연 하나씩 FastAPI로 전송
+        for (Concert concert : concerts) {
+
+            IndexReqDto req = new IndexReqDto(
+                    concert.getId(),
+                    concert.getTitle(),
+                    concert.getPrice(),
+                    concert.getLocation(),
+                    concert.getNotice(),
+                    concert.getCasting(),
+                    concert.getDetail(),
+                    concert.getPriceInfo(),
+                    concert.getGuide(),
+                    concert.getRefund(),
+                    concert.getStory(),
+                    concert.getMood()
+            );
+
+            // 3. 색인 결과 청크 수 누적
+            totalChunks += ragClient.index(req);
+        }
+
+        return totalChunks;
+    }
 }
